@@ -1,0 +1,44 @@
+% showing analyze peak center LIF results
+
+theta =    [8.2000, 9.3,   17.4,         19.9,  27.1, 27.1];
+sin_theta = sin(theta * pi / 180);
+Line =     {'K_b', 'K_a',  'K_b',      'K_a',  'K_b', 'K_a'};
+n =        [1,       1,      2,           2,    3,      3];
+n_lambda = [63.06, 71.08, 126.12,  142.16, 189.18,  213.24];
+T = table(theta', sin_theta', Line', n', n_lambda', 'VariableNames', {'theta', 'sin_theta', 'Line', 'n', 'n_lambda_over_d'});
+T.a0 = T.n_lambda_over_d ./ T.sin_theta;
+
+disp(T)
+
+
+% finding the slope for sin(theta) and n*lamnbda
+
+x = T.sin_theta(1:end-1);
+y = T.n_lambda_over_d(1:end-1);
+
+% x = [0.142, 0.161, 0.34];
+% y = [63.06,71.08 , 142.16];
+
+%theres data LiF
+% theta = [8.95, 10.10, 18.17, 20.54, 27.91, 31.82];
+% x = sin(theta * pi / 180);
+% y =  [63.06, 71.08, 126.12 , 142.16, 189.18, 213.24];
+
+
+figure;
+plot(x, y, 'o-');
+xlabel('x');
+ylabel('y');
+title('y as a function of x');
+grid on;
+
+% Fit a linear regression line to the data
+p = polyfit(x, y, 1);
+f = polyval(p, x);
+hold on;
+plot(x, f, 'r-');
+legend('Data', 'Linear fit');
+
+% Show the slope of the line
+slope = p(1);
+fprintf('The slope of the line is %.2f\n', slope);
