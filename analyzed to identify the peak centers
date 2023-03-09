@@ -1,0 +1,58 @@
+% Import data from first xlsx file
+[num1,txt1,raw1] = xlsread('LiF-Zr_3rd_try_rot90.xlsx');
+angle1 = num1(:,1);
+intensity1 = num1(:,2);
+
+% Define the ranges of angles to search for peaks
+ranges = [7 10; 16 21;26 34];
+
+% Initialize the peak centers array
+peak_centers = [];
+
+% Search for peaks in each range of angles
+for i = 1:size(ranges,1)
+    % Find the indices of the data in the current range of angles
+    idx = (angle1 >= ranges(i,1)) & (angle1 <= ranges(i,2));
+    % Extract the data in the current range of angles
+    sub_angle = angle1(idx);
+    sub_intensity = intensity1(idx);
+    % Smooth the data
+    sub_intensity_smooth = smoothdata(sub_intensity,'gaussian',6);
+    % Find the local maxima in the data
+    [pks,locs] = findpeaks(sub_intensity_smooth,'MinPeakHeight',6,'MinPeakDistance',6);
+    % Get the peak centers
+    sub_peak_center = sub_angle(locs);
+    disp(sub_peak_center)
+
+      % Plot the data
+    figure();
+    plot(sub_angle, sub_intensity)
+    xlabel('Angle (degrees)')
+    ylabel('Intensity (a.u.)')
+    title(sprintf('Bragg''s reflection at a LiF monocrystal: range %d to %d',ranges(i,1),ranges(i,2)))
+    hold on
+    plot(sub_angle, sub_intensity_smooth,'r')
+    scatter(sub_peak_center,pks,'g','filled')
+    legend('Original Data','Smooth Data','Peak centers')
+    % Add the current peak centers to the array
+    peak_centers = [peak_centers; sub_peak_center];
+end
+
+
+% Import data from xlsx file
+[num,txt,raw] = xlsread('LiF-Zr_3rd_try_rot90.xlsx');
+
+% Extract angle and intensity columns
+angle = num(:,1);
+intensity = num(:,2);
+
+% Plot the data
+figure();
+plot(angle, intensity)
+xlabel('Angle (degrees)')
+ylabel('Intensity (a.u.)')
+title('Data')
+
+% save the peak centers 
+save('peak_centers.mat','peak_centers')
+print sub_peak_center
