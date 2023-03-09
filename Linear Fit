@@ -1,0 +1,63 @@
+% showing analyze peak center LIF results
+
+theta =    [8.2000, 9.3,   17.4,         19.9,  27.1, 27.1];
+sin_theta = sin(theta * pi / 180);
+Line =     {'K_b', 'K_a',  'K_b',      'K_a',  'K_b', 'K_a'};
+n =        [1,       1,      2,           2,    3,      3];
+n_lambda = [63.06, 71.08, 126.12,  142.16, 189.18,  213.24];
+
+
+% Calculate additional variables and create table
+T = table(theta', sin_theta', Line', n', n_lambda', 'VariableNames', {'theta', 'sin_theta', 'Line', 'n', 'n_lambda'});
+
+% Add a new column to the table
+T.a0 = T.n_lambda ./ T.sin_theta;
+
+% Display the table
+disp(T)
+
+x = T.sin_theta(1:end-1);
+y = T.n_lambda(1:end-1);
+[p, S] = polyfit(x, y, 1);  % Fit a linear polynomial to the data (x,y) and store the coefficients and fitting information in p and S, respectively
+% p is a vector containing the coefficients of the polynomial
+% S is a structure that contains information about the fitting process. Specifically, S contains the following fields:
+    % R: the upper triangular matrix in the QR decomposition of the Vandermonde matrix, which is used to compute the coefficients p.
+    % df: the degrees of freedom, which is the number of data points minus the number of coefficients in the polynomial.
+f = polyval(p, x);          % Evaluate the polynomial at the x values to get the fitted values of y
+
+% Extract the standard errors of the slope and intercept from S
+slope_std_err = sqrt(diag(inv(S.R)*inv(S.R)')*S.normr^2/S.df); % Calculate the standard error of the slope using the formula sqrt(diag(inv(R'R))*normr^2/df), where R is the upper triangular matrix in the QR decomposition of the Vandermonde matrix, and df is the degrees of freedom
+intercept_std_err = slope_std_err * sqrt(sum(x.^2) / length(x)); % Calculate the standard error of the intercept using the formula se(c2) = se(slope) * sqrt(sum(x^2)/n), where n is the number of data points
+
+disp(['c1 = ', num2str(p(1))]);
+disp(['c2 = ', num2str(p(2))]);
+disp(['Standard error of slope = ', num2str(slope_std_err(1))]);
+disp(['Standard error of intercept = ', num2str(intercept_std_err(1))]);
+c1 = p(1);
+c2 = p(2);
+c1_err = slope_std_err(1);
+c2_err = intercept_std_err(1);
+
+eq = ['$n\lambda = ', 'c1*', '\sin\theta + ', 'c2', '$'];
+eq_err = ['$c_1 = ', num2str(c1), ' \pm ', num2str(c1_err), '$, $c_2 = ', num2str(c2), ' \pm ', num2str(c2_err), '$'];
+
+figure('Name', 'Linear Fit Bragg Law LiF', 'NumberTitle', 'off');
+set(gca, 'FontSize', 12);
+
+% Define the x and y error values
+x_err = slope_std_err(1)*ones(size(x));
+y_err = c2_err*ones(size(y));
+disp(x_err);
+
+
+errorbar(x, y, y_err, x_err, 'o', 'MarkerSize', 8, 'LineWidth', 1, 'Color', [0 0.4470 0.7410], 'MarkerFaceColor', 'auto', 'MarkerEdgeColor', 'none', 'CapSize', 3);
+
+hold on;
+plot(x, p(1)*x + p(2), 'r-', 'LineWidth', 0.5); % Change the line width to 0.5
+grid on;
+xlabel('$\sin\theta$', 'Interpreter', 'latex', 'FontSize', 14);
+ylabel('$n\lambda$', 'Interpreter', 'latex', 'FontSize', 14);
+title('Linear Fit Bragg Law LiF', 'FontSize', 16);
+legend({'Data', 'Linear fit'}, 'Location', 'northwest', 'Interpreter', 'latex');
+text(0.15, 0.95*max(y), eq, 'Interpreter', 'latex', 'FontSize', 14);
+text(0.15, 0.9*max(y), eq_err, 'Interpreter', 'latex', 'FontSize', 14);
