@@ -1,0 +1,15 @@
+figure;
+
+% Import data from first xlsx file
+[num1,txt1,raw1] = xlsread('LiF-Zr_3rd_try_rot90.xlsx');
+angle_mesured = num1(:,1);
+angle1 = sin(angle_mesured * pi / 180);
+
+intensity1 = num1(:,2);
+
+% Create first subplot
+plot(angle1, intensity1)
+fontSize = 20;
+xlabel(['Sin(',char(952),')'],'FontSize',fontSize)
+ylabel('Counts per second [1/s]','FontSize',fontSize)
+title('LiF with Zr Filter','FontSize',fontSize)
